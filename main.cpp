@@ -2,6 +2,7 @@
 #include "cmath"
 #include <exception>
 #include <chrono>
+#include <vector>
 // #include <omp.h>
 
 class Rational{
@@ -47,12 +48,12 @@ public:
         return Rational{i, 1};
     }
 
-    operator int() const{
-        if(denom != 1)
-            throw "Error";
+    // operator int() const{
+    //     if(denom != 1)
+    //         throw "Error";
 
-        return num;
-    }
+    //     return num;
+    // }
 
     Rational operator + (Rational& other){
         eq_denom(*this, other);
@@ -84,7 +85,7 @@ public:
         return answer;
     }
 
-    Rational operator = (const Rational& other){
+    Rational& operator = (const Rational& other){
         if(other.num != num || other.denom != denom){
             num = other.num;
             denom = other.denom;
@@ -92,17 +93,34 @@ public:
         return *this;
     }
 
-    Rational operator = (const int& other){
+    Rational& operator = (const int& other){
         num = other;
         denom = 1;
+
         return *this;
     }
 
-    Rational operator *= (const Rational& other){
+    Rational& operator *= (const Rational& other){
         num *= other.num;
         denom *= other.denom;
         normalize(*this);
 
+        return *this;
+    }
+
+    Rational& operator += (Rational& other){
+        eq_denom(*this, other);
+        num += other.num;
+        normalize(*this);
+        
+        return *this;
+    }
+
+    Rational& operator -= (Rational& other){
+        eq_denom(*this, other);
+        num -= other.num;
+        normalize(*this);
+        
         return *this;
     }
 
@@ -118,6 +136,8 @@ public:
     friend std::ostream& operator << (std::ostream& os, const Rational& rat){
         if(rat.denom == 1)
             os << rat.num;
+        else if(rat.num == 0)
+            os << 0;
         else
             os << rat.num << "/" << rat.denom;
         return os;
@@ -128,33 +148,28 @@ long int det(float** A, int n);
 
 long int M(float** A, int n, int J, int I = 0);
 
-Rational det_Gausses(Rational** A, int n);
+Rational det_Gausses(std::vector<std::vector<Rational>> A, int n);
 
 int main() {
-    try{
-        srand(time(0));
+    srand(time(0));
 
-        const int N = 8;
+    const int N = 8;
 
-        Rational** A = new(Rational*[N]);
-        for(size_t i = 0; i < N; i++){
-            A[i] = new Rational[N];
+    std::vector<std::vector<Rational>> A;
+
+    for(size_t i = 0; i < N; i++){
+        std::vector<Rational> temp;
+        for(size_t j = 0; j < N; j++){
+            Rational rat(Rational(rand() % 10));
+            temp.push_back(rat);
+            std::cout << rat << ' ';
         }
-
-        for(size_t i = 0; i < N; i++){
-            for(size_t j = 0; j < N; j++){
-                A[i][j] = Rational(rand() % 10);
-                std::cout << A[i][j] << ' ';
-            }
-            std::cout << '\n';
-        }
-
-        std::cout << '\n' << "====TRIANG====\n";
-        det_Gausses(A, N);
+        A.push_back(temp);
+        std::cout << '\n';
     }
-    catch(const std::exception& e){
-        std::cout << e.what() << '\n';
-    }
+
+    std::cout << '\n' << "====TRIANG====\n";
+    det_Gausses(A, N);
 
     return 0;
 }
@@ -211,7 +226,7 @@ long int M(float** A, int n, int J, int I){
     return M;
 }
 
-Rational det_Gausses(Rational** A, int n){
+Rational det_Gausses(std::vector<std::vector<Rational>> A, int n){
     Rational det = 1;
 
     Rational max_val = 0;
@@ -223,21 +238,36 @@ Rational det_Gausses(Rational** A, int n){
         }
     }
 
+    // std::cout << '\n' << '\n' << "====AFTERMAX====\n";
     if(row_max_val != 0){
         std::swap(A[0], A[row_max_val]);
         det *= Rational(-1);
     }
 
+    // for(size_t i = 0; i < n; i++){
+    //     for(size_t j = 0; j < n; j++){
+    //         std::cout << A[i][j] << ' ';
+    //     }
+    //     std::cout << '\n';
+    // }
+
     det *= A[0][0];
 
+    // std::cout << '\n' << '\n' << "====AFTERSHIT====\n";
     // if(std::signbit(A[1][0]))
     //     coef *= -1;
-
-    for(size_t t = 1; t < n; t++){
-        Rational coef = A[t][0] / A[0][0];
-        for(size_t k = 0; k < n; k++){
-            A[t][k] = A[t][k] + coef * Rational(A[0][k]);
+    try{
+        for(size_t t = 1; t < n; t++){
+            Rational coef = A[t][0] / A[0][0];
+            for(size_t k = 0; k < n; k++){
+                auto at = coef * A[0][k];
+                // std::cout << A[t][k] << " coef: " << coef << " at: " << at << '\n';
+                A[t][k] -= at;
+            }
         }
+    }
+    catch(const std::exception& e){
+        std::cout << e.what() << '\n';
     }
 
     for(int i = 0; i < n; i++){
