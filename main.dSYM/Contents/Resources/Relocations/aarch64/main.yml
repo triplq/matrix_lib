@@ -1,0 +1,26 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/alexey/threads/main'
+relocations:
+  - { offset: 0x3107, size: 0x8, addend: 0x0, symName: __ZStL8__ioinit, symObjAddr: 0x2890C, symBinAddr: 0x100008000, symSize: 0x0 }
+  - { offset: 0x359E, size: 0x8, addend: 0x0, symName: __GLOBAL__sub_I_main.cpp, symObjAddr: 0xEE8, symBinAddr: 0x1000015B4, symSize: 0x14 }
+  - { offset: 0x35B5, size: 0x8, addend: 0x0, symName: __Z41__static_initialization_and_destruction_0v, symObjAddr: 0xEAC, symBinAddr: 0x100001578, symSize: 0x3C }
+  - { offset: 0x35F4, size: 0x8, addend: 0x0, symName: __ZSt4swapIP8RationalENSt9enable_ifIXsrSt6__and_IJSt6__not_ISt15__is_tuple_likeIT_EESt21is_move_constructibleIS6_ESt18is_move_assignableIS6_EEE5valueEvE4typeERS6_SG_, symObjAddr: 0xDDC, symBinAddr: 0x100001524, symSize: 0x54 }
+  - { offset: 0x36AD, size: 0x8, addend: 0x0, symName: __Z11det_GaussesPP8Rationali, symObjAddr: 0xB48, symBinAddr: 0x100001290, symSize: 0x294 }
+  - { offset: 0x37EC, size: 0x8, addend: 0x0, symName: __Z1MPPfiii, symObjAddr: 0x8D4, symBinAddr: 0x10000101C, symSize: 0x274 }
+  - { offset: 0x391B, size: 0x8, addend: 0x0, symName: __Z3detPPfi, symObjAddr: 0x770, symBinAddr: 0x100000EB8, symSize: 0x164 }
+  - { offset: 0x39A9, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x530, symBinAddr: 0x100000C78, symSize: 0x240 }
+  - { offset: 0x3A86, size: 0x8, addend: 0x0, symName: __ZlsRSoRK8Rational, symObjAddr: 0x4AC, symBinAddr: 0x100000BF4, symSize: 0x84 }
+  - { offset: 0x3AC6, size: 0x8, addend: 0x0, symName: __ZN8RationalltERS_, symObjAddr: 0x44C, symBinAddr: 0x100000B94, symSize: 0x60 }
+  - { offset: 0x3B0C, size: 0x8, addend: 0x0, symName: __ZN8RationalmLERKS_, symObjAddr: 0x3E8, symBinAddr: 0x100000B30, symSize: 0x64 }
+  - { offset: 0x3B43, size: 0x8, addend: 0x0, symName: __ZN8RationalaSERKi, symObjAddr: 0x3B0, symBinAddr: 0x100000AF8, symSize: 0x38 }
+  - { offset: 0x3B7A, size: 0x8, addend: 0x0, symName: __ZN8RationalaSERKS_, symObjAddr: 0x344, symBinAddr: 0x100000A8C, symSize: 0x6C }
+  - { offset: 0x3BB1, size: 0x8, addend: 0x0, symName: __ZN8RationaldvERKS_, symObjAddr: 0x2E0, symBinAddr: 0x100000A28, symSize: 0x64 }
+  - { offset: 0x3BF7, size: 0x8, addend: 0x0, symName: __ZN8RationalmlERKS_, symObjAddr: 0x27C, symBinAddr: 0x1000009C4, symSize: 0x64 }
+  - { offset: 0x3C3D, size: 0x8, addend: 0x0, symName: __ZNK8RationalcviEv, symObjAddr: 0x22C, symBinAddr: 0x100000974, symSize: 0x50 }
+  - { offset: 0x3C7D, size: 0x8, addend: 0x0, symName: __ZN8RationalC1Ev, symObjAddr: 0x218, symBinAddr: 0x100000960, symSize: 0x14 }
+  - { offset: 0x3CC5, size: 0x8, addend: 0x0, symName: __ZN8RationalC1Ei, symObjAddr: 0x1E8, symBinAddr: 0x100000930, symSize: 0x30 }
+  - { offset: 0x3D21, size: 0x8, addend: 0x0, symName: __ZN8RationalC1Eii, symObjAddr: 0x180, symBinAddr: 0x1000008C8, symSize: 0x68 }
+  - { offset: 0x3D55, size: 0x8, addend: 0x0, symName: __ZN8Rational9normalizeERS_, symObjAddr: 0xA8, symBinAddr: 0x1000007F0, symSize: 0xD8 }
+  - { offset: 0x3D8C, size: 0x8, addend: 0x0, symName: __ZN8Rational8eq_denomERS_S0_, symObjAddr: 0x0, symBinAddr: 0x100000748, symSize: 0xA8 }
+...
