@@ -8,6 +8,11 @@
 class Rational{
 protected:
     void eq_denom(Rational& fr, Rational& sc){
+        if(fr.denom > 0 && sc.denom < 0 || fr.denom < 0 && sc.denom > 0){
+            sc.denom *= -1;
+            sc.num *= -1;
+        }
+
         if(fr.denom != sc.denom){
             int temp_d = fr.denom;
             fr.num *= sc.denom;
@@ -18,54 +23,65 @@ protected:
     }
 
     void normalize(Rational& fr){
-        if(fr.num == 0)
+        if (fr.denom == 0)
+            throw "Denominator can't be zero";
+        if (fr.num == 0) {
             fr.denom = 1;
-        else if(fr.num % fr.denom == 0){
-            fr.num /= fr.denom;
-            fr.denom = 1;
+            return;
         }
-        else if(fr.denom & fr.num == 0){
-            fr.denom /= fr.num;
-            fr.num = 1;
+        int gcd_num = gcd(fr.num, fr.denom);
+        fr.num /= gcd_num;
+        fr.denom /= gcd_num;
+
+        if (fr.denom < 0) {
+            fr.num = -fr.num;
+            fr.denom = -fr.denom;
         }
     }
-public:
-    int num;
-    int denom;
 
-    Rational(int n, int d){
+    int gcd(int a, int b){
+        a = std::abs(a);
+        b = std::abs(b);
+
+        while(b != 0){
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+public:
+    long int num;
+    long int denom;
+
+    Rational(long int n) : num{n}, denom{1} { };
+
+    Rational(long int n, long int d){
         if(d == 0)
             throw "Denominator can't be zero\n";
         num = n;
         denom = d;
     }
 
-    Rational(int n) : num{n}, denom{1} { };
-
     Rational() { };
 
-    static Rational from_int(int i){
-        return Rational{i, 1};
-    }
+    Rational operator + (const Rational& other){
+        Rational temp_this = *this;
+        Rational temp_other = other;
 
-    // operator int() const{
-    //     if(denom != 1)
-    //         throw "Error";
-
-    //     return num;
-    // }
-
-    Rational operator + (Rational& other){
-        eq_denom(*this, other);
-        Rational answer(num + other.num, denom);
+        eq_denom(temp_this, temp_other);
+        Rational answer(temp_this.num + temp_other.num, temp_this.denom);
         normalize(answer);
 
         return answer;
     }
 
-    Rational operator - (Rational& other){
-        eq_denom(*this, other);
-        Rational answer(num - other.num, denom);
+    Rational operator - (const Rational& other){
+        Rational temp_this = *this;
+        Rational temp_other = other;
+
+        eq_denom(temp_this, temp_other);        
+        Rational answer(temp_this.num - temp_other.num, temp_this.denom);
         normalize(answer);
 
         return answer;
@@ -90,12 +106,15 @@ public:
             num = other.num;
             denom = other.denom;
         }
+        normalize(*this);
+
         return *this;
     }
 
-    Rational& operator = (const int& other){
+    Rational& operator = (const long int& other){
         num = other;
         denom = 1;
+        normalize(*this);
 
         return *this;
     }
@@ -108,18 +127,26 @@ public:
         return *this;
     }
 
-    Rational& operator += (Rational& other){
-        eq_denom(*this, other);
-        num += other.num;
-        normalize(*this);
-        
+    Rational& operator += (const Rational& other){
+        Rational temp_this = *this;
+        Rational temp_other = other;
+
+        eq_denom(temp_this, temp_other);        
+        temp_this.num += temp_other.num;
+        normalize(temp_this);
+        *this = temp_this;
+
         return *this;
     }
 
-    Rational& operator -= (Rational& other){
-        eq_denom(*this, other);
-        num -= other.num;
-        normalize(*this);
+    Rational& operator -= (const Rational& other){
+        Rational temp_this = *this;
+        Rational temp_other = other;
+
+        eq_denom(temp_this, temp_other);        
+        temp_this.num -= temp_other.num;
+        normalize(temp_this);
+        *this = temp_this;
         
         return *this;
     }
@@ -127,6 +154,15 @@ public:
     bool operator < (Rational& other){
         eq_denom(*this, other);
         bool ans = num < other.num;
+        normalize(*this);
+        normalize(other);
+    
+        return ans;
+    }
+
+    bool operator == (Rational other){
+        eq_denom(*this, other);
+        bool ans = num == other.num;
         normalize(*this);
         normalize(other);
     
@@ -150,6 +186,8 @@ long int M(float** A, int n, int J, int I = 0);
 
 Rational det_Gausses(std::vector<std::vector<Rational>> A, int n);
 
+void new_main();
+
 int main() {
     srand(time(0));
 
@@ -169,7 +207,15 @@ int main() {
     }
 
     std::cout << '\n' << "====TRIANG====\n";
-    det_Gausses(A, N);
+
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    Rational ans = det_Gausses(A, N);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> dur = end_time - start_time;
+
+    std::cout << "Answer is: " << ans << " Time is: " << dur.count() << '\n';
 
     return 0;
 }
@@ -229,53 +275,59 @@ long int M(float** A, int n, int J, int I){
 Rational det_Gausses(std::vector<std::vector<Rational>> A, int n){
     Rational det = 1;
 
-    Rational max_val = 0;
-    int row_max_val = 0;
     for(size_t i = 0; i < n; i++){
-        if(max_val < A[i][0]){
-            max_val = A[i][0];
-            row_max_val = i;
-        }
-    }
-
-    // std::cout << '\n' << '\n' << "====AFTERMAX====\n";
-    if(row_max_val != 0){
-        std::swap(A[0], A[row_max_val]);
-        det *= Rational(-1);
-    }
-
-    // for(size_t i = 0; i < n; i++){
-    //     for(size_t j = 0; j < n; j++){
-    //         std::cout << A[i][j] << ' ';
-    //     }
-    //     std::cout << '\n';
-    // }
-
-    det *= A[0][0];
-
-    // std::cout << '\n' << '\n' << "====AFTERSHIT====\n";
-    // if(std::signbit(A[1][0]))
-    //     coef *= -1;
-    try{
-        for(size_t t = 1; t < n; t++){
-            Rational coef = A[t][0] / A[0][0];
-            for(size_t k = 0; k < n; k++){
-                auto at = coef * A[0][k];
-                // std::cout << A[t][k] << " coef: " << coef << " at: " << at << '\n';
-                A[t][k] -= at;
+        Rational max_val = A[i][i];
+        int row_max_val = i;
+        for(size_t k = i; k < n; k++){
+            if(max_val < A[k][i]){
+                max_val = A[k][i];
+                row_max_val = k;
             }
         }
-    }
-    catch(const std::exception& e){
-        std::cout << e.what() << '\n';
-    }
 
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
-            std::cout << A[i][j] << ' ';
+        if(row_max_val != i){
+            std::swap(A[i], A[row_max_val]);
+            det *= Rational(-1);
+        }
+
+        det *= A[i][i];
+
+        try{
+            // std::cout << "Coef: ";
+            for(size_t t = i+1; t < n; t++){
+                // if(A[t][i] == (Rational(0)))
+                //     continue;
+                Rational coef = A[t][i] / A[i][i];
+                std::cout << coef << ' ';
+                for(size_t k = i; k < n; k++){
+                    auto at = coef * A[i][k];
+                    A[t][k] -= at;
+                }
+            }
+            // std::cout << '\n';
+        }
+        catch(const std::exception& e){
+            std::cout << e.what() << '\n';
+        }
+
+        std::cout << "Stage: " << i << '\n';
+        for(size_t k = 0; k < n; k++){
+            for(size_t j = 0; j < n; j++){
+                std::cout << A[k][j] << ' ';
+            }
+            std::cout << '\n';
         }
         std::cout << '\n';
     }
+
+    std::cout << "\n\n" << "=====FINAL=====\n";
+
+    for(int k = 0; k < n; k++){
+            for(int j = 0; j < n; j++){
+                std::cout << A[k][j] << ' ';
+            }
+            std::cout << '\n';
+        }
 
     return det;
 }
