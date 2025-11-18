@@ -3,48 +3,34 @@
 #include <exception>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 // #include <omp.h>
 
 class Rational{
 protected:
-    void eq_denom(Rational& fr, Rational& sc){
-        if (fr.denom < 0) {
-            fr.num = -fr.num;
-            fr.denom = -fr.denom;
-        }
-        if (sc.denom < 0) {
-            sc.num = -sc.num;
-            sc.denom = -sc.denom;
-        }
-
-        if(fr.denom != sc.denom){
-            auto lcm_num = fr.denom * sc.denom / gcd(fr.denom, sc.denom);
-
-            fr.num *= lcm_num / fr.denom;
-            fr.denom *= lcm_num / fr.denom;
-            sc.num *= lcm_num / sc.denom;
-            sc.denom *= lcm_num / sc.denom;
-        }
-    }
-
-    void normalize(){
+    void eq_denom(Rational& oth){
         if (this->denom < 0) {
-            this->num = -this->num;
-            this->denom = -this->denom;
+            this->num *= -1;
+            this->denom *= -1;
         }
-        if (this->denom == 0)
-            throw std::invalid_argument("Denominator can't be zero");
-        if (this->num == 0) {
-            this->denom = 1;
-            return;
+        if (oth.denom < 0) {
+            oth.num *= -1;
+            oth.denom *= -1;
         }
-        auto gcd_num = gcd(this->num, this->denom);
-        this->num /= gcd_num;
-        this->denom /= gcd_num;
+
+        if(this->denom != oth.denom){
+            auto lcm_num = this->denom / gcd(this->denom, oth.denom) * oth.denom;
+
+            this->num = (lcm_num / this->denom) * this->num;
+            this->denom = lcm_num;
+            oth.num = (lcm_num / oth.denom) * oth.num;
+            oth.denom = lcm_num;
+        }
     }
 
-    long long int gcd(long long int a, long long int b){
-        a = std::abs(a); b = std::abs(b);
+    static __int128 gcd(__int128 a, __int128 b){
+        if(a < 0) a = -a;
+        if(b < 0) b = -b;
 
         while(b != 0){
             int temp = a % b;
@@ -57,14 +43,14 @@ protected:
 
     
 public:
-    long long int num;
-    long long int denom;
+    __int128 num;
+    __int128 denom;
 
-    Rational(long long int n) : num{n}, denom{1} { };
+    Rational(__int128 n) : num{n}, denom{1} { };
 
-    Rational(long long int n, long long int d){
+    Rational(__int128 n, __int128 d){
         if(d == 0)
-            throw std::invalid_argument("Denominator can't be zero");
+            throw std::invalid_argument("Division by zero");
         if(d < 0){
             d *= -1;
             n *= -1;
@@ -75,11 +61,27 @@ public:
 
     Rational() { };
 
+    void normalize(){
+        if (this->denom < 0) {
+            this->num = -this->num;
+            this->denom = -this->denom;
+        }
+        if (this->denom == 0)
+            throw std::invalid_argument("Division by zero");
+        if (this->num == 0) {
+            this->denom = 1;
+            return;
+        }
+        auto gcd_num = gcd(this->num, this->denom);
+        this->num /= gcd_num;
+        this->denom /= gcd_num;
+    }
+
     Rational operator + (const Rational& other){
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);
+        temp_this.eq_denom(temp_other);
         Rational answer(temp_this.num + temp_other.num, temp_this.denom);
         answer.normalize();
 
@@ -90,7 +92,7 @@ public:
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);        
+        temp_this.eq_denom(temp_other);
         Rational answer(temp_this.num - temp_other.num, temp_this.denom);
         answer.normalize();
 
@@ -98,17 +100,32 @@ public:
     }
 
     Rational operator * (const Rational& other){
-        Rational answer(num * other.num, denom * other.denom);
+        Rational temp_this = *this;
+        Rational temp_other = other;
+
+        auto g1 = gcd(temp_this.num, temp_other.denom);
+        auto g2 = gcd(temp_other.num, temp_this.denom);
+
+        Rational answer((temp_this.num / g1) * (temp_other.num / g2), (temp_this.denom / g2) * (temp_other.denom / g1));
         answer.normalize();
 
         return answer;
     }
 
     Rational operator / (const Rational& other){
-        Rational answer(num * other.denom, denom * other.num);
-        answer.normalize();
+        if(other.num == 0)
+            throw std::invalid_argument("Division by zero");
+        Rational temp_other;
 
-        return answer;
+        temp_other.num = other.denom;
+        temp_other.denom = other.num;
+
+        if(temp_other.denom < 0){
+            temp_other.num = -temp_other.num;
+            temp_other.denom = -temp_other.denom;
+        }
+
+        return *this * temp_other;
     }
 
     Rational& operator = (const Rational& other){
@@ -121,7 +138,7 @@ public:
         return *this;
     }
 
-    Rational& operator = (const long int& other){
+    Rational& operator = (const __int128& other){
         num = other;
         denom = 1;
         this->normalize();
@@ -141,7 +158,7 @@ public:
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);        
+        temp_this.eq_denom(temp_other);
         temp_this.num += temp_other.num;
         temp_this.normalize();
         *this = temp_this;
@@ -153,7 +170,7 @@ public:
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);        
+        temp_this.eq_denom(temp_other);
         temp_this.num -= temp_other.num;
         temp_this.normalize();
         *this = temp_this;
@@ -165,7 +182,7 @@ public:
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);
+        temp_this.eq_denom(temp_other);
         bool ans = temp_this.num < temp_other.num;
     
         return ans;
@@ -175,19 +192,52 @@ public:
         Rational temp_this = *this;
         Rational temp_other = other;
 
-        eq_denom(temp_this, temp_other);
+        temp_this.eq_denom(temp_other);
         bool ans = temp_this.num == temp_other.num;
     
         return ans;
     }
 
-    friend std::ostream& operator << (std::ostream& os, const Rational& rat){
-        if(rat.denom == 1)
-            os << rat.num;
-        else if(rat.num == 0)
+    friend std::ostream& operator << (std::ostream& os, Rational rat){
+        std::string num;
+
+        if(rat.num == 0)
+            num = "0";
+        else{
+            bool negative;
+            if(rat.num < 0){
+                negative = true;
+                rat.num = -rat.num;
+            }
+            else
+                negative = false;
+
+            while(rat.num > 0){
+                num.push_back('0' + (rat.num % 10));
+                rat.num /= 10;
+            }
+            if(negative)
+                num.push_back('-');
+
+            std::reverse(num.begin(), num.end());
+        }
+
+        if(rat.denom == 1){
+            os << num;
+        }
+        else if(num == "0")
             os << 0;
-        else
-            os << rat.num << "/" << rat.denom;
+        else{
+            std::string denom;
+            while(rat.denom > 0){
+                denom.push_back('0' + (rat.denom % 10));
+                rat.denom /= 10;
+            }
+
+            std::reverse(denom.begin(), denom.end());
+
+            os << num << "/" << denom;
+        }
         return os;
     }
 };
@@ -242,11 +292,21 @@ Rational det_Gausses(std::vector<std::vector<Rational>> A, int n){
             det *= Rational(-1);
         }
 
+        std::cout << "\n\n====AFTER MAXING====\n";
+        for(size_t l = 0; l < n; l++){
+            for(size_t p = 0; p < n; p++){
+                std::cout << A[l][p] << ' ';
+            }
+            std::cout << '\n';
+        }
+        std::cout << '\n';
+
         det *= A[i][i];
 
         try{
             for(size_t t = i+1; t < n; t++){
                 Rational coef = A[t][i] / A[i][i];
+                std::cout << "cur coef: " << coef << '\n';
                 for(size_t k = i; k < n; k++){
                     auto at = coef * A[i][k];
                     A[t][k] -= at;
